@@ -1,0 +1,22 @@
+{
+  "name": "coindesk",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "keywords": [
+    "api",
+    "bitcoin",
+    "blockchain",
+    "client",
+    "coindesk",
+    "javascript",
+    "node.js"
+  ],
+  "author": "Sergio de Diego",
+  "license": "MIT"
+}
