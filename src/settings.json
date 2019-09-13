@@ -42,5 +42,17 @@
   ],
   "VALID_FOR": [
     "yesterday"
+  ],
+
+  "DEFAULT_LOG_LEVEL": "info",
+  "DEFAULT_LOG_SILENT": "false",
+  "DEFAULT_LOG_FILEPATH": "/tmp/coindesk.log",
+  "VALID_LOG_LEVELS": [
+    "error",
+    "warn",
+    "info",
+    "verbose",
+    "debug",
+    "silly"
   ]
 }

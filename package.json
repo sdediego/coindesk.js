@@ -18,5 +18,9 @@
     "node.js"
   ],
   "author": "Sergio de Diego",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@hapi/joi": "^16.0.1",
+    "winston": "^3.2.1"
+  }
 }
