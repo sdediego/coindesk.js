@@ -1,0 +1,46 @@
+{
+  "API_CLIENT_VERSION": "0.1.0",
+  "API_COINDESK_SETUP": {
+    "protocol" : "https",
+    "host" : "api.coindesk.com",
+    "path": "/v1/bpi"
+  },
+  "API_CURRENTPRICE_DATA_TYPE": "currentprice",
+  "API_HISTORICAL_DATA_TYPE": "historical",
+  "API_SUPPORTED_CURRENCIES_DATA_TYPE": "supported-currencies",
+  "API_CURRENTPRICE_ENDPOINT": "currentprice.json",
+  "API_HISTORICAL_ENDPOINT": "historical/close.json",
+  "API_ENDPOINTS": {
+  "API_SUPPORTED_CURRENCIES_ENDPOINT": "supported-currencies.json",
+    "currentprice": "currentprice.json",
+    "historical": "historical/close.json",
+    "supported-currencies": "supported-currencies.json"
+  },
+
+  "VALID_DATA_TYPES": [
+    "currentprice",
+    "historical"
+  ],
+  "INDEX_PARAM": "index",
+  "CURRENCY_PARAM": "currency",
+  "START_PARAM": "start",
+  "END_PARAM": "end",
+  "FOR_PARAM": "for",
+  "VALID_CURRENTPRICE_PARAMS": [
+    "currency"
+  ],
+  "VALID_HISTORICAL_PARAMS": [
+    "index",
+    "currency",
+    "start",
+    "end",
+    "for"
+  ],
+  "VALID_INDEX": [
+    "USD",
+    "CNY"
+  ],
+  "VALID_FOR": [
+    "yesterday"
+  ]
+}
