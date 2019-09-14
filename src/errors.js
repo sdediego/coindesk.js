@@ -14,10 +14,19 @@ class BaseError extends Error {
   }
 }
 
+class CoindeskAPIHttpRequestError extends BaseError {
+  constructor(message, code = null) {
+    super(message, code);
+  }
+}
+
 class LogServiceError extends BaseError {
   constructor(message, code = null) {
     super(message, code);
   }
 }
 
-module.exports = { LogServiceError };
+module.exports = {
+  CoindeskAPIHttpRequestError,
+  LogServiceError
+};
