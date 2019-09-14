@@ -54,5 +54,16 @@
     "verbose",
     "debug",
     "silly"
-  ]
+  ],
+
+  "REQUEST_MAX_RETRIES": 10,
+  "REQUEST_MAX_REDIRECTS": 5,
+  "REQUEST_MAX_TIMEOUT": 30000,
+  "REQUEST_HEADERS": {
+    "Accept": "application/json",
+    "Accept-Language": "en-US",
+    "Cache-Control": "no-cache",
+    "Connection": "close",
+    "X-API-client-version": "0.1.0"
+  }
 }
