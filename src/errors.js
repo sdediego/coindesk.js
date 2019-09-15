@@ -14,6 +14,12 @@ class BaseError extends Error {
   }
 }
 
+class CoindeskAPIClientError extends BaseError {
+  constructor(message, code = null) {
+    super(message, code);
+  }
+}
+
 class CoindeskAPIHttpRequestError extends BaseError {
   constructor(message, code = null) {
     super(message, code);
@@ -27,6 +33,7 @@ class LogServiceError extends BaseError {
 }
 
 module.exports = {
+  CoindeskAPIClientError,
   CoindeskAPIHttpRequestError,
   LogServiceError
 };
