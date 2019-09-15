@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 /*
  * Class-based Coindesk API client.
  */
@@ -9,6 +7,7 @@ const { Headers } = require('node-fetch');
 const { _private } = require('./weakmap');
 const { getLogger } = require('../log/log.service');
 const { CoindeskAPIHttpRequestError } = require('../errors');
+const { CoindeskAPIClientError } = require('../errors');
 const settings = require('../settings');
 
 const logger = getLogger(__filename);
@@ -159,4 +158,145 @@ class CoindeskAPIHttpRequest {
   }
 }
 
-module.exports = { CoindeskAPIHttpRequest };
+
+class CoindeskAPIClient extends CoindeskAPIHttpRequest {
+  constructor(dataType = null, params = {}, retries = 10, redirects = 5, timeout = 5000, backoff = true) {
+    super(retries, redirects, timeout, backoff);
+    _private(this).dataType = dataType;
+    _private(this).apiEndpoint = this._constructApiEndpoint(dataType, params);
+  }
+
+  toString() {
+    return `Coindesk API Client -
+      Class: ${ this.constructor.name },
+      Url:   ${ this.url }`;
+  }
+
+  static start(dataType = null, params = {}, retries = 10, redirects = 5, timeout = 5000, backoff = true) {
+    // dataType = utils.validateDataType(dataType);
+    // params = utils.validateParams(dataType, params);
+    [retries, redirects, timeout, backoff] = this.validate(retries, redirects, timeout, backoff);
+    return new this(dataType, params, retries, redirects, timeout, backoff);
+  }
+
+  _constructApiEndpoint(dataType, params) {
+    let resource = settings.API_ENDPOINTS[dataType];
+    if (dataType === settings.API_CURRENTPRICE_DATA_TYPE) {
+      const currency = params.hasOwnProperty('currency') ? params.currency : '';
+      resource = currency !== '' ? resource.split('.').join(`/${ currency }.`) : resource;
+      delete params.currency;
+    }
+
+    const encodedParams = this._getEncodedParams(params);
+    const apiPath = this._getApiPath();
+    return new URL(`${ apiPath }/${ resource }?${ encodedParams }`);
+  }
+
+  _getApiPath() {
+    const { protocol, host, path } = settings.API_COINDESK_SETUP;
+    const apiPath = `${ protocol }://${ host }${ path }`;
+    return this._cleanApiPath(apiPath);
+  }
+
+  _cleanApiPath(apiPath) {
+    return apiPath.endsWith('/') ? apiPath.replace(/\/+$/g, '') : apiPath;
+  }
+
+  get dataType() {
+    return _private(this).dataType;
+  }
+
+  set dataType(dataType) {
+    // dataType = utils.validateDataType(dataType);
+    _private(this).dataType = dataType;
+    if (dataType === settings.API_CURRENTPRICE_DATA_TYPE) this.params = {};
+    _private(this).apiEndpoint = this._constructApiEndpoint(dataType, this.params);
+  }
+
+  get url() {
+    return _private(this).apiEndpoint;
+  }
+
+  get path() {
+    return this.url.pathname;
+  }
+
+  set path(path) {
+    this.url.pathname = path;
+    this.deleteManyParams(Object.keys(this.params));
+  }
+
+  get params() {
+    const params = new Object();
+    for (let key of this.url.searchParams.keys()) {
+      params[key] = this.getParam(key);
+    }
+    return params;
+  }
+
+  getParam(key) {
+    return this.url.searchParams.get(key);
+  }
+
+  set params(params) {
+    // params = utils.validateParams(this.dataType, params);
+    Object.keys(params).forEach(key => this.url.searchParams.set(key, params[key]));
+  }
+
+  deleteParam(key) {
+    this.url.searchParams.delete(key);
+  }
+
+  deleteManyParams(keys) {
+    keys.forEach(key => this.deleteParam(key));
+  }
+
+  deleteAllParams() {
+    Object.keys(this.params).forEach(key => this.deleteParam(key));
+  }
+
+  get validParams() {
+    switch (this.dataType) {
+      case settings.API_CURRENTPRICE_DATA_TYPE:
+        return settings.VALID_CURRENTPRICE_PARAMS;
+      case settings.API_HISTORICAL_DATA_TYPE:
+        return settings.VALID_HISTORICAL_PARAMS;
+      default:
+        const message = `Uncorrect data type setup for ${ this.dataType }`;
+        logger.warn(`[CoindeskAPIClient] Data type error: ${ message }`);
+        return null;
+    }
+  }
+
+  async getSupportedCurrencies() {
+    let currencies = null;
+    const apiPath = this._getApiPath();
+    const resource = settings.API_ENDPOINTS[settings.API_SUPPORTED_CURRENCIES_DATA_TYPE];
+    const url = new URL(`${ apiPath }/${ resource }`);
+
+    try {
+      currencies = await super.get(url.href, {}, false);
+    } catch (err) {
+      const message = err.message;
+      logger.warn(`[CoindeskAPIClient] Get currencies error: ${ message }`);
+    }
+
+    // if (currencies !== null) await utils.validateSupportedCurrencies(currencies);
+    return currencies !== null ? currencies : settings.SUPPORTED_CURRENCIES;
+  }
+
+  async get(raw = false) {
+    try {
+      return await super.get(this.url.href, {}, raw);
+    } catch (err) {
+      const message = `Could not get response. ${ err.message }`;
+      logger.error(`[CoindeskAPIClient] API call error: ${ message }`);
+      throw new CoindeskAPIClientError(message);
+    }
+  }
+}
+
+module.exports = {
+  CoindeskAPIHttpRequest,
+  CoindeskAPIClient
+};
