@@ -6,8 +6,9 @@ const axios = require('axios');
 const { Headers } = require('node-fetch');
 const { _private } = require('./weakmap');
 const { getLogger } = require('../log/log.service');
-const { CoindeskAPIHttpRequestError } = require('../errors');
 const { CoindeskAPIClientError } = require('../errors');
+const { CoindeskAPIHttpRequestError } = require('../errors');
+const { CoindeskAPIHttpResponseError } = require('../errors');
 const settings = require('../settings');
 
 const logger = getLogger(__filename);
@@ -296,7 +297,53 @@ class CoindeskAPIClient extends CoindeskAPIHttpRequest {
   }
 }
 
+class CoindeskAPIHttpResponse {
+  constructor(response) {
+    _private(this).response = response;
+  }
+
+  toString() {
+    return `Coindesk API Http Response -
+      Class: ${ this.constructor.name }`;
+  }
+
+  static parse(response) {
+    // TODO: this.validate(response);
+    return new this(response);
+  }
+
+  static validate(response) {}
+
+  get response() {
+    return _private(this).response;
+  }
+
+  get JSONresponse() {
+    try {
+      return JSON.stringify(this.response);
+    } catch (err) {
+      const message = `Unable to decode JSON response. ${ err.message }`;
+      logger.error(`[CoindeskAPIHttpResponse] Response error: ${ message }`);
+      throw new CoindeskAPIHttpResponseError(message);
+    }
+  }
+
+  get responseItems() {
+    return Object.keys(this.response);
+  }
+
+  getResponseItem(item) {
+    if (!this.response.hasOwnProperty(item)) {
+      const message = `Unvalid provided response item ${ item }`;
+      logger.error(`[CoindeskAPIHttpResponse] Response item error: ${ message }`);
+      return null;
+    }
+    return this.response[item];
+  }
+}
+
 module.exports = {
+  CoindeskAPIClient,
   CoindeskAPIHttpRequest,
-  CoindeskAPIClient
+  CoindeskAPIHttpResponse
 };
