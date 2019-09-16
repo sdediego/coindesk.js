@@ -1,8 +1,8 @@
 {
   "API_CLIENT_VERSION": "0.1.0",
   "API_COINDESK_SETUP": {
-    "protocol" : "https",
-    "host" : "api.coindesk.com",
+    "protocol": "https",
+    "host": "api.coindesk.com",
     "path": "/v1/bpi"
   },
   "API_CURRENTPRICE_DATA_TYPE": "currentprice",
