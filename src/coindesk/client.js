@@ -5,7 +5,7 @@
 const axios = require('axios');
 const { Headers } = require('node-fetch');
 const { _private } = require('./weakmap');
-const { getLogger } = require('../log/log.service');
+const { getLogger } = require('../logger/service');
 const { CoindeskAPIClientError } = require('../errors');
 const { CoindeskAPIHttpRequestError } = require('../errors');
 const { CoindeskAPIHttpResponseError } = require('../errors');

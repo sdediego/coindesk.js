@@ -3,7 +3,7 @@
  */
 
 const fs = require('fs');
-const { getLogger } = require('../log/log.service');
+const { getLogger } = require('../logger/service');
 const { CoindeskAPIClientError } = require('../errors');
 const { CoindeskAPIHttpRequestError } = require('../errors');
 const { CoindeskAPIHttpResponseError } = require('../errors');

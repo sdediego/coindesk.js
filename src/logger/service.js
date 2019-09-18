@@ -4,7 +4,7 @@
 
 const path = require('path');
 const { createLogger, format, transports } = require('winston');
-const { config: logConfig } = require('./log.config');
+const { config: logConfig } = require('./config');
 
 const { combine, colorize, label, printf, timestamp } = format;
 
