@@ -9,6 +9,7 @@ const { getLogger } = require('../log/log.service');
 const { CoindeskAPIClientError } = require('../errors');
 const { CoindeskAPIHttpRequestError } = require('../errors');
 const { CoindeskAPIHttpResponseError } = require('../errors');
+const utils = require('./utils');
 const settings = require('../settings');
 
 const logger = getLogger(__filename);
@@ -36,10 +37,10 @@ class CoindeskAPIHttpRequest {
   }
 
   static validate(retries, redirects, timeout, backoff) {
-    // retries = utils.validateRetries(retries);
-    // redirects = utils.validateRedirects(redirects);
-    // timeout = utils.validateTimeout(timeout);
-    // backoff = utils.validateBackoff(backoff);
+    retries = utils.validateRetries(retries);
+    redirects = utils.validateRedirects(redirects);
+    timeout = utils.validateTimeout(timeout);
+    utils.validateBackoff(backoff);
     return [retries, redirects, timeout, backoff];
   }
 
@@ -48,7 +49,7 @@ class CoindeskAPIHttpRequest {
   }
 
   set retries(retries) {
-    // retries = utils.validateRetries(retries);
+    retries = utils.validateRetries(retries);
     _private(this).retries = retries;
   }
 
@@ -57,7 +58,7 @@ class CoindeskAPIHttpRequest {
   }
 
   set redirects(redirects) {
-    // redirects = utils.validateRedirects(redirects);
+    redirects = utils.validateRedirects(redirects);
     _private(this).redirects = redirects;
   }
 
@@ -66,7 +67,7 @@ class CoindeskAPIHttpRequest {
   }
 
   set timeout(timeout) {
-    // timeout = utils.validateTimeout(timeout);
+    timeout = utils.validateTimeout(timeout);
     _private(this).timeout = timeout;
   }
 
@@ -75,7 +76,7 @@ class CoindeskAPIHttpRequest {
   }
 
   set backoff(backoff) {
-    // backoff = utils.validateBackoff(backoff);
+    utils.validateBackoff(backoff);
     _private(this).backoff = backoff;
   }
 
@@ -159,7 +160,6 @@ class CoindeskAPIHttpRequest {
   }
 }
 
-
 class CoindeskAPIClient extends CoindeskAPIHttpRequest {
   constructor(dataType = null, params = {}, retries = 10, redirects = 5, timeout = 5000, backoff = true) {
     super(retries, redirects, timeout, backoff);
@@ -174,8 +174,8 @@ class CoindeskAPIClient extends CoindeskAPIHttpRequest {
   }
 
   static start(dataType = null, params = {}, retries = 10, redirects = 5, timeout = 5000, backoff = true) {
-    // dataType = utils.validateDataType(dataType);
-    // params = utils.validateParams(dataType, params);
+    dataType = utils.validateDataType(dataType);
+    params = utils.validateParams(dataType, params);
     [retries, redirects, timeout, backoff] = this.validate(retries, redirects, timeout, backoff);
     return new this(dataType, params, retries, redirects, timeout, backoff);
   }
@@ -208,7 +208,7 @@ class CoindeskAPIClient extends CoindeskAPIHttpRequest {
   }
 
   set dataType(dataType) {
-    // dataType = utils.validateDataType(dataType);
+    dataType = utils.validateDataType(dataType);
     _private(this).dataType = dataType;
     if (dataType === settings.API_CURRENTPRICE_DATA_TYPE) this.params = {};
     _private(this).apiEndpoint = this._constructApiEndpoint(dataType, this.params);
@@ -240,7 +240,7 @@ class CoindeskAPIClient extends CoindeskAPIHttpRequest {
   }
 
   set params(params) {
-    // params = utils.validateParams(this.dataType, params);
+    params = utils.validateParams(this.dataType, params);
     Object.keys(params).forEach(key => this.url.searchParams.set(key, params[key]));
   }
 
@@ -282,7 +282,7 @@ class CoindeskAPIClient extends CoindeskAPIHttpRequest {
       logger.warn(`[CoindeskAPIClient] Get currencies error: ${ message }`);
     }
 
-    // if (currencies !== null) await utils.validateSupportedCurrencies(currencies);
+    if (currencies !== null) await utils.validateSupportedCurrencies(currencies);
     return currencies !== null ? currencies : settings.SUPPORTED_CURRENCIES;
   }
 
@@ -307,12 +307,20 @@ class CoindeskAPIHttpResponse {
       Class: ${ this.constructor.name }`;
   }
 
-  static parse(response) {
-    // TODO: this.validate(response);
+  static parse(response, dataType, currency = null) {
+    this.validate(response, dataType, currency);
     return new this(response);
   }
 
-  static validate(response) {}
+  static validate(response, dataType, currency) {
+    const schema = utils.getResponseSchema(dataType, currency);
+    const { errors } = schema.validate(response);
+    if (errors) {
+      const message = error.message;
+      logger.error(`[CoindeskAPIHttpResponse] Validation error: ${ message }`);
+      throw new CoindeskAPIHttpResponseError(message);
+    }
+  }
 
   get response() {
     return _private(this).response;
