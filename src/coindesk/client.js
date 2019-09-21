@@ -80,10 +80,9 @@ class CoindeskAPIHttpRequest {
     _private(this).backoff = backoff;
   }
 
-  async get(url, params = {}, raw = false) {
-    url = this._getParsedUrl(url, params);
-    const options = this._getRequestOptions();
+  async get(url, raw = false) {
     let response;
+    const options = this._getRequestOptions();
 
     try {
       response = await this._httpRequest(url, options);
@@ -95,48 +94,6 @@ class CoindeskAPIHttpRequest {
 
     this._checkResponseStatus(response);
     return raw ? response : response.data;
-  }
-
-  async _httpRequest(url, options) {
-    for (let retry = 1; retry <= this.retries; retry++) {
-      try {
-        return await axios.get(url.href, options);
-      } catch (err) {
-        const timeout = this.backoff ? Math.pow(2, retry) : 0;
-        logger.error(`[CoindeskAPIHttpRequest] Retry ${ retry } request: ${ err.message }`);
-        logger.error(`[CoindeskAPIHttpRequest] Waiting ${ timeout } ms`);
-        await this._waitExponentialBackoff(timeout);
-      }
-    }
-
-    const message = `No response from Coindesk API url ${ url }`;
-    logger.error(`[CoindeskAPIHttpRequest] Request error: ${ message }`);
-    throw new CoindeskAPIHttpRequestError(message);
-  }
-
-  _checkResponseStatus(response) {
-    const { status: statusCode, statusText } = response;
-
-    if (statusCode === 403 || statusCode === 404) {
-      const message = `Response status code ${ statusCode } - ${ statusText }`;
-      logger.error(`[CoindeskAPIHttpRequest] Request error: ${ message }`);
-      throw new CoindeskAPIHttpRequestError(message);
-    } else {
-      const message = `Status code ${ statusCode }`;
-      logger.info(`[CoindeskAPIHttpRequest] Request success: ${ message }`);
-    }
-  }
-
-  _getParsedUrl(url, params) {
-    const encodedParams = this._getEncodedParams(params);
-    url = encodedParams !== '' ? `${ url }?${ encodedParams }` : url;
-    return new URL(url);
-  }
-
-  _getEncodedParams(params) {
-    return Object.keys(params).map(key => {
-      return `${ encodeURIComponent(key) }=${ encodeURIComponent(params[key]) }`;
-    }).join('&');
   }
 
   _getRequestOptions() {
@@ -153,10 +110,40 @@ class CoindeskAPIHttpRequest {
     return new Headers(headers);
   }
 
+  async _httpRequest(url, options) {
+    for (let retry = 1; retry <= this.retries; retry++) {
+      try {
+        return await axios.get(url, options);
+      } catch (err) {
+        const timeout = this.backoff ? Math.pow(2, retry) : 0;
+        logger.error(`[CoindeskAPIHttpRequest] Retry ${ retry } request: ${ err.message }`);
+        logger.error(`[CoindeskAPIHttpRequest] Waiting ${ timeout } ms`);
+        await this._waitExponentialBackoff(timeout);
+      }
+    }
+
+    const message = `No response from Coindesk API url ${ url }`;
+    logger.error(`[CoindeskAPIHttpRequest] Request error: ${ message }`);
+    throw new CoindeskAPIHttpRequestError(message);
+  }
+
   _waitExponentialBackoff(timeout) {
     return new Promise((resolve, reject) => {
       setTimeout(() => resolve(), timeout);
     });
+  }
+
+  _checkResponseStatus(response) {
+    const { status: statusCode, statusText } = response;
+
+    if (statusCode === 403 || statusCode === 404) {
+      const message = `Response status code ${ statusCode } - ${ statusText }`;
+      logger.error(`[CoindeskAPIHttpRequest] Request error: ${ message }`);
+      throw new CoindeskAPIHttpRequestError(message);
+    } else {
+      const message = `Status code ${ statusCode }`;
+      logger.info(`[CoindeskAPIHttpRequest] Request success: ${ message }`);
+    }
   }
 }
 
@@ -188,9 +175,9 @@ class CoindeskAPIClient extends CoindeskAPIHttpRequest {
       delete params.currency;
     }
 
-    const encodedParams = this._getEncodedParams(params);
-    const apiPath = this._getApiPath();
-    return new URL(`${ apiPath }/${ resource }?${ encodedParams }`);
+    const apiPath = `${ this._getApiPath() }/${ resource }`;
+    const apiEndpoint = this._getParsedUrl(apiPath, params);
+    return apiEndpoint;
   }
 
   _getApiPath() {
@@ -201,6 +188,19 @@ class CoindeskAPIClient extends CoindeskAPIHttpRequest {
 
   _cleanApiPath(apiPath) {
     return apiPath.endsWith('/') ? apiPath.replace(/\/+$/g, '') : apiPath;
+  }
+
+  _getParsedUrl(url, params) {
+    const encodedParams = this._getEncodedParams(params);
+    url = encodedParams !== '' ? `${ url }?${ encodedParams }` : url;
+    utils.validateUrl(url);
+    return new URL(url);
+  }
+
+  _getEncodedParams(params) {
+    return Object.keys(params).map(key => {
+      return `${ encodeURIComponent(key) }=${ encodeURIComponent(params[key]) }`;
+    }).join('&');
   }
 
   get dataType() {
@@ -276,7 +276,8 @@ class CoindeskAPIClient extends CoindeskAPIHttpRequest {
     const url = new URL(`${ apiPath }/${ resource }`);
 
     try {
-      currencies = await super.get(url.href, {}, false);
+      utils.validateUrl(url.href);
+      currencies = await super.get(url.href, false);
     } catch (err) {
       const message = err.message;
       logger.warn(`[CoindeskAPIClient] Get currencies error: ${ message }`);
@@ -288,7 +289,7 @@ class CoindeskAPIClient extends CoindeskAPIHttpRequest {
 
   async get(raw = false) {
     try {
-      return await super.get(this.url.href, {}, raw);
+      return await super.get(this.url.href, raw);
     } catch (err) {
       const message = `Could not get response. ${ err.message }`;
       logger.error(`[CoindeskAPIClient] API call error: ${ message }`);

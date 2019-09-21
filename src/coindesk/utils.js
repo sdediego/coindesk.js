@@ -165,14 +165,23 @@ let validateBackoff = (backoff) => {
   }
 };
 
+let validateUrl = (url) => {
+  const match = url.match(/(?:([^:\/?#]+):)?(?:\/\/([^\/?#]*))?([^?#]*)(?:\?([^#]*))?(?:#(.*))?/);
+  if (!match) {
+    const message = `${ url } is not a valid pattern for an url.`;
+    logger.error(`[CoindeskAPIClient] URL error: ${ message }`);
+    throw new CoindeskAPIClientError(message);
+  }
+};
+
 let validateSupportedCurrencies = async (currencies) => {
   const validCurrencies = new Set(currencies.map(currency => currency.currency));
-  const supportedCurrencies = new Set(supportedCurrencies.map(currency => { 
+  const allowedCurrencies = new Set(supportedCurrencies.map(currency => {
     return currency.currency;
   }));
 
   for (let currency of validCurrencies) {
-    if (!supportedCurrencies.has(currency)) {
+    if (!allowedCurrencies.has(currency)) {
       const message = `Missing currency ${ currency } in settings.`;
       logger.warn(`[CoindeskAPIClient] Currency error: ${ message }`);
       return await updateCurrenciesSettings(currencies);
@@ -243,6 +252,7 @@ module.exports = {
   validateRedirects,
   validateTimeout,
   validateBackoff,
+  validateUrl,
   validateSupportedCurrencies,
   getResponseSchema
 };
