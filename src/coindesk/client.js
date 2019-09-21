@@ -353,6 +353,5 @@ class CoindeskAPIHttpResponse {
 
 module.exports = {
   CoindeskAPIClient,
-  CoindeskAPIHttpRequest,
-  CoindeskAPIHttpResponse
+  CoindeskAPIResponse: CoindeskAPIHttpResponse
 };
