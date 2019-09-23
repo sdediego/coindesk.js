@@ -26,8 +26,10 @@ And of course CoinDesk API client for node.js itself is open source with a [publ
 
 #### Installation
 
-#### Quick Start
+Install the npm package with the command:
+``npm install --save coindesk``.
 
+#### Quick Start
 
 A series of simple examples:
 
