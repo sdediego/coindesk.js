@@ -31,12 +31,7 @@ class CoindeskAPIHttpRequest {
       Backoff:   ${ this.backoff }`;
   }
 
-  static start(retries = 10, redirects = 5, timeout = 5000, backoff = true) {
-    [retries, redirects, timeout, backoff] = this.validate(retries, redirects, timeout, backoff);
-    return new this(retries, redirects, timeout, backoff);
-  }
-
-  static validate(retries, redirects, timeout, backoff) {
+  static _validate(retries, redirects, timeout, backoff) {
     retries = utils.validateRetries(retries);
     redirects = utils.validateRedirects(redirects);
     timeout = utils.validateTimeout(timeout);
@@ -83,7 +78,6 @@ class CoindeskAPIHttpRequest {
   async get(url, raw = false) {
     let response;
     const options = this._getRequestOptions();
-
     try {
       response = await this._httpRequest(url, options);
     } catch (err) {
@@ -91,7 +85,6 @@ class CoindeskAPIHttpRequest {
       logger.error(`[CoindeskAPIHttpRequest] Request error: ${ message }`);
       throw new CoindeskAPIHttpRequestError(message);
     }
-
     this._checkResponseStatus(response);
     return raw ? response : response.data;
   }
@@ -121,7 +114,6 @@ class CoindeskAPIHttpRequest {
         await this._waitExponentialBackoff(timeout);
       }
     }
-
     const message = `No response from Coindesk API url ${ url }`;
     logger.error(`[CoindeskAPIHttpRequest] Request error: ${ message }`);
     throw new CoindeskAPIHttpRequestError(message);
@@ -135,7 +127,6 @@ class CoindeskAPIHttpRequest {
 
   _checkResponseStatus(response) {
     const { status: statusCode, statusText } = response;
-
     if (statusCode === 403 || statusCode === 404) {
       const message = `Response status code ${ statusCode } - ${ statusText }`;
       logger.error(`[CoindeskAPIHttpRequest] Request error: ${ message }`);
@@ -155,26 +146,27 @@ class CoindeskAPIClient extends CoindeskAPIHttpRequest {
   }
 
   toString() {
+    const toString = super.toString().slice(super.toString().indexOf('Retries'));
     return `Coindesk API Client -
       Class: ${ this.constructor.name },
-      Url:   ${ this.url }`;
+      Url:   ${ this.url },
+      ${ toString }`;
   }
 
   static start(dataType = null, params = {}, retries = 10, redirects = 5, timeout = 5000, backoff = true) {
     dataType = utils.validateDataType(dataType);
     params = utils.validateParams(dataType, params);
-    [retries, redirects, timeout, backoff] = this.validate(retries, redirects, timeout, backoff);
+    [retries, redirects, timeout, backoff] = this._validate(retries, redirects, timeout, backoff);
     return new this(dataType, params, retries, redirects, timeout, backoff);
   }
 
   _constructApiEndpoint(dataType, params) {
-    let resource = settings.API_ENDPOINTS[dataType];
+    let resource = dataType ? settings.API_ENDPOINTS[dataType] : '';
     if (dataType === settings.API_CURRENTPRICE_DATA_TYPE) {
       const currency = params.hasOwnProperty('currency') ? params.currency : '';
       resource = currency !== '' ? resource.split('.').join(`/${ currency }.`) : resource;
       delete params.currency;
     }
-
     const apiPath = `${ this._getApiPath() }/${ resource }`;
     const apiEndpoint = this._getParsedUrl(apiPath, params);
     return apiEndpoint;
@@ -274,7 +266,6 @@ class CoindeskAPIClient extends CoindeskAPIHttpRequest {
     const apiPath = this._getApiPath();
     const resource = settings.API_ENDPOINTS[settings.API_SUPPORTED_CURRENCIES_DATA_TYPE];
     const url = new URL(`${ apiPath }/${ resource }`);
-
     try {
       utils.validateUrl(url.href);
       currencies = await super.get(url.href, false);
@@ -282,7 +273,6 @@ class CoindeskAPIClient extends CoindeskAPIHttpRequest {
       const message = err.message;
       logger.warn(`[CoindeskAPIClient] Get currencies error: ${ message }`);
     }
-
     if (currencies !== null) await utils.validateSupportedCurrencies(currencies);
     return currencies !== null ? currencies : settings.SUPPORTED_CURRENCIES;
   }
@@ -309,11 +299,11 @@ class CoindeskAPIHttpResponse {
   }
 
   static parse(response, dataType, currency = null) {
-    this.validate(response, dataType, currency);
+    this._validate(response, dataType, currency);
     return new this(response);
   }
 
-  static validate(response, dataType, currency) {
+  static _validate(response, dataType, currency) {
     const schema = utils.getResponseSchema(dataType, currency);
     const { errors } = schema.validate(response);
     if (errors) {
