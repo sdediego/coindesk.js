@@ -1,8 +1,10 @@
-# coindesk.js
+# CoinDesk API client
 
 Powered by [![CoinDesk]()](https://www.coindesk.com/api/)
 
-[Node.js](https://nodejs.org) client written in Javascript for CoinDesk API service:
+[Node.js](https://nodejs.org) client written in Javascript for CoinDesk API service.
+
+If you like this package please give it a :star: in the [Github repo][coindesk.js].
 
 ### Features
 
@@ -13,7 +15,7 @@ Powered by [![CoinDesk]()](https://www.coindesk.com/api/)
 
 These instructions will get you a copy of the project on your local system.
 
-#### Prerequisites
+##### Dependencies
 
 CoinDesk API client for node.js uses a number of open source projects to work properly:
 
@@ -27,11 +29,13 @@ And of course CoinDesk API client for node.js itself is open source with a [publ
 #### Installation
 
 Install the npm package with the command:
-``npm install --save coindesk``.
+```sh
+npm install --save coindesk
+```
 
 #### Quick Start
 
-A series of simple examples:
+A series of simple examples for Bitcoin price fetching:
 
 Get currentprice price for Bitcoin in json format
 ```javascript
@@ -63,8 +67,17 @@ const response = apiClient.get()
 Get historical price for Bitcoin providing optional parameters
 ```javascript
 const { CoindeskAPIClient } = require('coindesk');
-const apiClient = CoindeskAPIClient.start('historical', { start: '2018-01-01' });
+const apiClient = CoindeskAPIClient.start('historical', { currency: 'EUR', for: 'yesterday' });
 const response = apiClient.get()
+    .then(response => response)
+    .catch(err => console.error(err));
+```
+
+Get raw http response for either currentprice or historical (defaults to false)
+```javascript
+const { CoindeskAPIClient } = require('coindesk');
+const apiClient = CoindeskAPIClient.start('currentprice');
+const response = apiClient.get(raw=true)
     .then(response => response)
     .catch(err => console.error(err));
 ```
@@ -76,13 +89,33 @@ const apiClient = new CoindeskAPIClient();
 const supportedCurrencies = apiClient.getSupportedCurrencies();
 ```
 
+Examples for CoinDesk API response parsing (currentprice or historical):
+
+Parse and validate fetched Bitcoin price response
+```javascript
+const { CoindeskAPIClient, CoindeskAPIResponse } = require('coindesk');
+const apiClient = new CoindeskAPIClient('historical');
+const response = apiClient.get(raw=true)
+    .then(response => CoindeskAPIResponse.parse(response))
+    .catch(err => console.error(err));
+```
+
+Get info from parsed Bitcoin price response
+```javascript
+const { CoindeskAPIResponse } = require('coindesk');
+const parsedResponse = CoindeskAPIResponse.parse(response);
+const apiResponse = parsedResponse.response;
+const jsonResponse = parsedResponse.JSONResponse;
+const items = parsedResponse.responseItems;
+const bpi = parsedResponse.getResponseItem('bpi');
+```
+
 Full documentation for CoinDesk API is available at https://www.coindesk.com/api/.
 
 License
 ----
 
 MIT
-
 
 **Free Software. Hell Yeah!**
 
