@@ -31,7 +31,6 @@ let validateParams = (dataType, params) => {
         throw new CoindeskAPIClientError(message);
       }
     }
-
     if (params.hasOwnProperty(settings.CURRENCY_PARAM)) {
       validateCurrency(params[settings.CURRENCY_PARAM]);
     }
@@ -43,7 +42,6 @@ let validateParams = (dataType, params) => {
         throw new CoindeskAPIClientError(message);
       }
     }
-
     if (params.hasOwnProperty(settings.INDEX_PARAM)) {
       validateIndex(params[settings.INDEX_PARAM]);
     }
@@ -64,7 +62,6 @@ let validateParams = (dataType, params) => {
     logger.error(`[CoindeskAPIClient] Data type error: ${ message }`);
     throw new CoindeskAPIClientError(message);
   }
-
   return params;
 };
 
@@ -113,47 +110,41 @@ let validateFor = (forParam) => {
 };
 
 let validateRetries = (retries) => {
-  if (typeof retries !== 'number') {
-    const message = `Retries type ${ typeof retries } must be 'number'.`;
+  if (typeof retries !== 'number' || !Number.isInteger(retries)) {
+    const message = `Retries type ${ typeof retries } must be integer number.`;
     logger.error(`[CoindeskAPIHttpRequest] Retries error: ${ message }`);
     throw new CoindeskAPIHttpRequestError(message);
   }
-
   const maxRetries = parseInt(Math.min(retries, settings.REQUEST_MAX_RETRIES));
   if (maxRetries < retries) {
     logger.warn(`[CoindeskAPIHttpRequest] Request max retries: ${ maxRetries }.`);
   }
-
   return maxRetries;
 };
 
 let validateRedirects = (redirects) => {
-  if (typeof redirects !== 'number') {
-    const message = `Redirects type ${ typeof redirects } must be 'number'.`;
+  if (typeof redirects !== 'number' || !Number.isInteger(retries)) {
+    const message = `Redirects type ${ typeof redirects } must be integer number.`;
     logger.error(`[CoindeskAPIHttpRequest] Redirects error: ${ message }`);
     throw new CoindeskAPIHttpRequestError(message);
   }
-
   const maxRedirects = parseInt(Math.min(redirects, settings.REQUEST_MAX_REDIRECTS));
   if (maxRedirects < redirects) {
     logger.warn(`[CoindeskAPIHttpRequest] Request max redirects: ${ maxRedirects }.`);
   }
-
   return maxRedirects;
 };
 
 let validateTimeout = (timeout) => {
-  if (typeof timeout !== 'number') {
-    const message = `Timeout type ${ typeof timeout } must be 'number'.`;
+  if (typeof timeout !== 'number' || !Number.isInteger(retries)) {
+    const message = `Timeout type ${ typeof timeout } must be integer number.`;
     logger.error(`[CoindeskAPIHttpRequest] Timeout error: ${ message }`);
     throw new CoindeskAPIHttpRequestError(message);
   }
-
   const maxTimeout = parseInt(Math.min(timeout, settings.REQUEST_MAX_TIMEOUT));
   if (maxTimeout < timeout) {
     logger.warn(`[CoindeskAPIHttpRequest] Request max timeout: ${ maxTimeout }.`);
   }
-
   return maxTimeout;
 };
 
@@ -176,10 +167,7 @@ let validateUrl = (url) => {
 
 let validateSupportedCurrencies = async (currencies) => {
   const validCurrencies = new Set(currencies.map(currency => currency.currency));
-  const allowedCurrencies = new Set(supportedCurrencies.map(currency => {
-    return currency.currency;
-  }));
-
+  const allowedCurrencies = new Set(supportedCurrencies.map(currency => currency.currency));
   for (let currency of validCurrencies) {
     if (!allowedCurrencies.has(currency)) {
       const message = `Missing currency ${ currency } in settings.`;
@@ -209,7 +197,6 @@ let writeFile = (path, data) => {
 
 let updateCurrenciesSettings = async (currencies) => {
   let file;
-
   try {
     file = await readFile('../currencies.json');
   } catch (err) {
@@ -217,11 +204,9 @@ let updateCurrenciesSettings = async (currencies) => {
     logger.error(`[CoindeskAPIClient] File error: ${ message }`);
     throw new CoindeskAPIClientError(message);
   }
-
   const currenciesObj = JSON.parse(file);
   currenciesObj.SUPPORTED_CURRENCIES = currencies;
   const currenciesJSON = JSON.stringify(currenciesObj);
-
   try {
     await writeFile('../currencies.json', currenciesJSON);
   } catch (err) {
