@@ -1,5 +1,4 @@
 {
-  "API_CLIENT_VERSION": "0.1.2",
   "API_COINDESK_SETUP": {
     "protocol": "https",
     "host": "api.coindesk.com",
@@ -64,6 +63,6 @@
     "Accept-Language": "en-US",
     "Cache-Control": "no-cache",
     "Connection": "close",
-    "X-API-client-version": "0.1.2"
+    "X-API-client-version": "0.1.3"
   }
 }

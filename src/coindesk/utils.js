@@ -123,7 +123,7 @@ let validateRetries = (retries) => {
 };
 
 let validateRedirects = (redirects) => {
-  if (typeof redirects !== 'number' || !Number.isInteger(retries)) {
+  if (typeof redirects !== 'number' || !Number.isInteger(redirects)) {
     const message = `Redirects type ${ typeof redirects } must be integer number.`;
     logger.error(`[CoindeskAPIHttpRequest] Redirects error: ${ message }`);
     throw new CoindeskAPIHttpRequestError(message);
@@ -136,7 +136,7 @@ let validateRedirects = (redirects) => {
 };
 
 let validateTimeout = (timeout) => {
-  if (typeof timeout !== 'number' || !Number.isInteger(retries)) {
+  if (typeof timeout !== 'number' || !Number.isInteger(timeout)) {
     const message = `Timeout type ${ typeof timeout } must be integer number.`;
     logger.error(`[CoindeskAPIHttpRequest] Timeout error: ${ message }`);
     throw new CoindeskAPIHttpRequestError(message);

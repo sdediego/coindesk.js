@@ -28,7 +28,7 @@ And of course CoinDesk API client for node.js itself is open source with a [publ
 
 #### Installation
 
-Install the npm package with the command:
+Install the npm package from [npmjs.com][npm] with the command:
 ```sh
 npm install --save coindesk
 ```
@@ -94,9 +94,10 @@ Examples for CoinDesk API response parsing (currentprice or historical):
 Parse and validate fetched Bitcoin price response
 ```javascript
 const { CoindeskAPIClient, CoindeskAPIResponse } = require('coindesk');
-const apiClient = new CoindeskAPIClient('historical');
+const dataType = 'historical';
+const apiClient = new CoindeskAPIClient(dataType);
 const response = apiClient.get(raw=true)
-    .then(response => CoindeskAPIResponse.parse(response))
+    .then(response => CoindeskAPIResponse.parse(response, dataType))
     .catch(err => console.error(err));
 ```
 
@@ -122,6 +123,7 @@ MIT
 [//]: # (These are reference links used in the body of this note and get stripped out when the markdown processor does its job. There is no need to format nicely because it shouldn't be seen.)
 
    [coindesk.js]: <https://github.com/sdediego/coindesk.js>
+   [npm]: <https://www.npmjs.com/package/coindesk>
    [@hapi/joi]: <https://www.npmjs.com/package/@hapi/joi>
    [axios]: <https://www.npmjs.com/package/axios>
    [node-fetch]: <https://www.npmjs.com/package/node-fetch>
