@@ -1,4 +1,5 @@
-/*
+/**
+ * @file
  * Class-based Coindesk API client.
  */
 
@@ -14,7 +15,30 @@ const settings = require('../settings');
 
 const logger = getLogger(__filename);
 
+/**
+ * Constructs an instance of CoindeskAPIHttpRequest class.
+ *
+ * Provides the ability to request current price and historical
+ * prices for Bitcoin from CoinDesk API.
+ *
+ * @access private
+ * @class
+ */
 class CoindeskAPIHttpRequest {
+
+  /**
+   * Constructs an instance of CoindeskAPIHttpRequest class.
+   *
+   * @access     public
+   * @constructs CoindeskAPIHttpRequest
+   *
+   * @constructor
+   * @param  {Number}  retries   Maximum number of request attempts before failing.
+   * @param  {Number}  redirects Maximum number of request redirects allowed.
+   * @param  {Number}  timeout   Number of miliseconds before throw request timeout error.
+   * @param  {Boolean} backoff   Enable/disable http request retry backoff.
+   * @return {Object}  CoindeskAPIHttpRequest class instance.
+   */
   constructor(retries = 10, redirects = 5, timeout = 5000, backoff = true) {
     _private(this).retries = retries;
     _private(this).redirects = redirects;
@@ -22,6 +46,15 @@ class CoindeskAPIHttpRequest {
     _private(this).backoff = backoff;
   }
 
+  /**
+   * Returns instance string representation.
+   *
+   * @access   public
+   * @memberof CoindeskAPIHttpRequest
+   *
+   * @function
+   * @return {String} CoindeskAPIHttpRequest class instance string representation.
+   */
   toString() {
     return `Coindesk API Http Request -
       Class:     ${ this.constructor.name },
@@ -31,7 +64,21 @@ class CoindeskAPIHttpRequest {
       Backoff:   ${ this.backoff }`;
   }
 
-  static _validate(retries, redirects, timeout, backoff) {
+  /**
+   * Validates class properties and constructs an instance of CoindeskAPIHttpRequest class.
+   *
+   * @access     public
+   * @constructs CoindeskAPIHttpRequest
+   * @static
+   *
+   * @function
+   * @param  {Number}  retries   Maximum number of request attempts before failing.
+   * @param  {Number}  redirects Maximum number of request redirects allowed.
+   * @param  {Number}  timeout   Number of miliseconds before throw request timeout error.
+   * @param  {Boolean} backoff   Enable/disable http request retry backoff.
+   * @return {Object}  CoindeskAPIHttpRequest class instance.
+   */
+  static validate(retries, redirects, timeout, backoff) {
     retries = utils.validateRetries(retries);
     redirects = utils.validateRedirects(redirects);
     timeout = utils.validateTimeout(timeout);
@@ -39,42 +86,130 @@ class CoindeskAPIHttpRequest {
     return [retries, redirects, timeout, backoff];
   }
 
+  /**
+   * Returns instance requests retries property value.
+   *
+   * @access   public
+   * @memberof CoindeskAPIHttpRequest
+   *
+   * @property {Function}
+   * @return   {Number}   Instance maximum number of request attempts before failing.
+   */
   get retries() {
     return _private(this).retries;
   }
 
+  /**
+   * Sets instance requests retries property value.
+   *
+   * @access   public
+   * @memberof CoindeskAPIHttpRequest
+   *
+   * @property {Function}
+   * @param    {Number}   retries Maximum number of request attempts before failing.
+   */
   set retries(retries) {
     retries = utils.validateRetries(retries);
     _private(this).retries = retries;
   }
 
+  /**
+   * Returns instance requests redirects property value.
+   *
+   * @access   public
+   * @memberof CoindeskAPIHttpRequest
+   *
+   * @property {Function}
+   * @return   {Number}   Instance maximum number of request redirects allowed.
+   */
   get redirects() {
     return _private(this).redirects;
   }
 
+  /**
+   * Sets instance requests redirects property value.
+   *
+   * @access   public
+   * @memberof CoindeskAPIHttpRequest
+   *
+   * @property {Function}
+   * @param    {Number}   redirects Maximum number of request redirects allowed.
+   */
   set redirects(redirects) {
     redirects = utils.validateRedirects(redirects);
     _private(this).redirects = redirects;
   }
 
+  /**
+   * Returns instance requests timeout property value.
+   *
+   * @access   public
+   * @memberof CoindeskAPIHttpRequest
+   *
+   * @property {Function}
+   * @return   {Number}   Instance maximum of miliseconds before throw request timeout error.
+   */
   get timeout() {
     return _private(this).timeout;
   }
 
+  /**
+   * Sets instance requests timeout property value.
+   *
+   * @access   public
+   * @memberof CoindeskAPIHttpRequest
+   *
+   * @property {Function}
+   * @param    {Number}   timeout Number of miliseconds before throw request timeout error.
+   */
   set timeout(timeout) {
     timeout = utils.validateTimeout(timeout);
     _private(this).timeout = timeout;
   }
 
+  /**
+   * Returns instance requests backoff property value.
+   *
+   * @access   public
+   * @memberof CoindeskAPIHttpRequest
+   *
+   * @property {Function}
+   * @return   {Boolean}  Instance request retry backoff.
+   */
   get backoff() {
     return _private(this).backoff;
   }
 
+  /**
+   * Sets instance requests backoff property value.
+   *
+   * @access   public
+   * @memberof CoindeskAPIHttpRequest
+   *
+   * @property {Function}
+   * @param    {Boolean}  backoff Enable/disable http request retry backoff.
+   */
   set backoff(backoff) {
     utils.validateBackoff(backoff);
     _private(this).backoff = backoff;
   }
 
+  /**
+   * Gets Bitcoin market information from Coindesk API.
+   *
+   * Makes https request to Coindesk API for the provided url with
+   * optional parameters.
+   *
+   * @access   public
+   * @memberof CoindeskAPIHttpRequest
+   *
+   * @function
+   * @param  {String}  url Endpoint with optional query parameters.
+   * @param  {Boolean} raw Enable/disable raw response.
+   * @return {Promise} Http response object with requested data.
+   *
+   * @throws {CoindeskAPIHttpRequestError}
+   */
   async get(url, raw = false) {
     let response;
     const options = this._getRequestOptions();
@@ -89,6 +224,19 @@ class CoindeskAPIHttpRequest {
     return raw ? response : response.data;
   }
 
+  /**
+   * Returns http request options and headers.
+   *
+   * Returns an object with http request headers and optional parameters
+   * configuration, like response type (json), maximum number of redirects
+   * and timeout.
+   *
+   * @access   private
+   * @memberof CoindeskAPIHttpRequest
+   *
+   * @function
+   * @return {Object} Http request optional parameters and headers.
+   */
   _getRequestOptions() {
     return {
       headers: this._getHeaders(),
@@ -98,11 +246,36 @@ class CoindeskAPIHttpRequest {
     };
   }
 
+  /**
+   * Returns http request headers.
+   *
+   * @access   private
+   * @memberof CoindeskAPIHttpRequest
+   *
+   * @function
+   * @return {Object} Http request headers.
+   */
   _getHeaders() {
     const headers = settings.REQUEST_HEADERS;
     return new Headers(headers);
   }
 
+  /**
+   * Gets Bitcoin market information from Coindesk API.
+   *
+   * Makes https request to Coindesk API managing the
+   * internal calls flow.
+   *
+   * @access   private
+   * @memberof CoindeskAPIHttpRequest
+   *
+   * @function
+   * @param  {String}  url     Endpoint with optional query parameters.
+   * @param  {Boolean} options Http request options.
+   * @return {Promise} Http response object with requested data.
+   *
+   * @throws {CoindeskAPIHttpRequestError}
+   */
   async _httpRequest(url, options) {
     for (let retry = 1; retry <= this.retries; retry++) {
       try {
@@ -119,17 +292,45 @@ class CoindeskAPIHttpRequest {
     throw new CoindeskAPIHttpRequestError(message);
   }
 
+  /**
+   * Returns a Promise when timeout expires.
+   *
+   * When class property backoff is enabled awaits between request calls
+   * retries in an exponentially incremental rate.
+   *
+   * @access   private
+   * @memberof CoindeskAPIHttpRequest
+   *
+   * @function
+   * @param  {Number}  timeout Number of miliseconds for request timeout error.
+   * @return {Promise} Resolves the promise when timeout is reached.
+   */
   _waitExponentialBackoff(timeout) {
     return new Promise((resolve, reject) => {
       setTimeout(() => resolve(), timeout);
     });
   }
 
+  /**
+   * Validates Coindesk API response status.
+   *
+   * @access   private
+   * @memberof CoindeskAPIHttpRequest
+   *
+   * @function
+   * @param {Object} response Http response object with requested data.
+   *
+   * @throws {CoindeskAPIHttpRequestError}
+   */
   _checkResponseStatus(response) {
     const { status: statusCode, statusText } = response;
     if (statusCode === 403 || statusCode === 404) {
       const message = `Response status code ${ statusCode } - ${ statusText }`;
       logger.error(`[CoindeskAPIHttpRequest] Request error: ${ message }`);
+      throw new CoindeskAPIHttpRequestError(message);
+    } else if (statusCode === 500) {
+      const message = `Response status code ${ statusCode } - ${ statusText }`;
+      logger.error(`[CoindeskAPIHttpRequest] Server error: ${ message }`);
       throw new CoindeskAPIHttpRequestError(message);
     } else {
       const message = `Status code ${ statusCode }`;
@@ -138,6 +339,16 @@ class CoindeskAPIHttpRequest {
   }
 }
 
+/**
+ * Constructs an instance of CoindeskAPIClient class.
+ *
+ * Provides the ability generate a client instance to manage endpoints
+ * with different options to make request to CoinDesk API for fetching
+ * current price and historical prices for Bitcoin.
+ *
+ * @access public
+ * @class
+ */
 class CoindeskAPIClient extends CoindeskAPIHttpRequest {
   constructor(dataType = null, params = {}, retries = 10, redirects = 5, timeout = 5000, backoff = true) {
     super(retries, redirects, timeout, backoff);
@@ -156,7 +367,7 @@ class CoindeskAPIClient extends CoindeskAPIHttpRequest {
   static start(dataType = null, params = {}, retries = 10, redirects = 5, timeout = 5000, backoff = true) {
     dataType = utils.validateDataType(dataType);
     params = utils.validateParams(dataType, params);
-    [retries, redirects, timeout, backoff] = this._validate(retries, redirects, timeout, backoff);
+    [retries, redirects, timeout, backoff] = this.validate(retries, redirects, timeout, backoff);
     return new this(dataType, params, retries, redirects, timeout, backoff);
   }
 
@@ -288,6 +499,14 @@ class CoindeskAPIClient extends CoindeskAPIHttpRequest {
   }
 }
 
+/**
+ * Constructs an instance of CoindeskAPIHttpResponse class.
+ *
+ * Provides the ability to parse and validate responses from CoinDesk API.
+ *
+ * @access public
+ * @class
+ */
 class CoindeskAPIHttpResponse {
   constructor(response) {
     _private(this).response = response;
@@ -342,6 +561,7 @@ class CoindeskAPIHttpResponse {
 }
 
 module.exports = {
+  CoindeskAPIRequest: CoindeskAPIHttpRequest,
   CoindeskAPIClient,
   CoindeskAPIResponse: CoindeskAPIHttpResponse
 };
