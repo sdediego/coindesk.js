@@ -37,7 +37,7 @@ class CoindeskAPIHttpRequest {
    * @param  {Number}  redirects Maximum number of request redirects allowed.
    * @param  {Number}  timeout   Number of miliseconds before throw request timeout error.
    * @param  {Boolean} backoff   Enable/disable http request retry backoff.
-   * @return {Object}  CoindeskAPIHttpRequest class instance.
+   * @return {CoindeskAPIHttpRequest} Class instance.
    */
   constructor(retries = 10, redirects = 5, timeout = 5000, backoff = true) {
     _private(this).retries = retries;
@@ -76,7 +76,7 @@ class CoindeskAPIHttpRequest {
    * @param  {Number}  redirects Maximum number of request redirects allowed.
    * @param  {Number}  timeout   Number of miliseconds before throw request timeout error.
    * @param  {Boolean} backoff   Enable/disable http request retry backoff.
-   * @return {Object}  CoindeskAPIHttpRequest class instance.
+   * @return {CoindeskAPIHttpRequest} Class instance.
    */
   static validate(retries, redirects, timeout, backoff) {
     retries = utils.validateRetries(retries);
@@ -231,7 +231,7 @@ class CoindeskAPIHttpRequest {
    * configuration, like response type (json), maximum number of redirects
    * and timeout.
    *
-   * @access   private
+   * @access   protected
    * @memberof CoindeskAPIHttpRequest
    *
    * @function
@@ -249,7 +249,7 @@ class CoindeskAPIHttpRequest {
   /**
    * Returns http request headers.
    *
-   * @access   private
+   * @access   protected
    * @memberof CoindeskAPIHttpRequest
    *
    * @function
@@ -266,7 +266,7 @@ class CoindeskAPIHttpRequest {
    * Makes https request to Coindesk API managing the
    * internal calls flow.
    *
-   * @access   private
+   * @access   protected
    * @memberof CoindeskAPIHttpRequest
    *
    * @function
@@ -298,7 +298,7 @@ class CoindeskAPIHttpRequest {
    * When class property backoff is enabled awaits between request calls
    * retries in an exponentially incremental rate.
    *
-   * @access   private
+   * @access   protected
    * @memberof CoindeskAPIHttpRequest
    *
    * @function
@@ -314,7 +314,7 @@ class CoindeskAPIHttpRequest {
   /**
    * Validates Coindesk API response status.
    *
-   * @access   private
+   * @access   protected
    * @memberof CoindeskAPIHttpRequest
    *
    * @function
@@ -350,12 +350,37 @@ class CoindeskAPIHttpRequest {
  * @class
  */
 class CoindeskAPIClient extends CoindeskAPIHttpRequest {
+
+  /**
+   * Constructs an instance of CoindeskAPIClient class.
+   *
+   * @access     public
+   * @constructs CoindeskAPIClient
+   *
+   * @constructor
+   * @param  {String}  dataType  Type of data to fetch from Coindesk API (currentprice or historical).
+   * @param  {Object}  params    Optional Coindesk API endpoint query parameters.
+   * @param  {Number}  retries   Maximum number of request attempts before failing.
+   * @param  {Number}  redirects Maximum number of request redirects allowed.
+   * @param  {Number}  timeout   Number of miliseconds before throw request timeout error.
+   * @param  {Boolean} backoff   Enable/disable http request retry backoff.
+   * @return {CoindeskAPIClient} Class instance.
+   */
   constructor(dataType = null, params = {}, retries = 10, redirects = 5, timeout = 5000, backoff = true) {
     super(retries, redirects, timeout, backoff);
     _private(this).dataType = dataType;
     _private(this).apiEndpoint = this._constructApiEndpoint(dataType, params);
   }
 
+  /**
+   * Returns instance string representation.
+   *
+   * @access   public
+   * @memberof CoindeskAPIClient
+   *
+   * @function
+   * @return {String} CoindeskAPIClient class instance string representation.
+   */
   toString() {
     const toString = super.toString().slice(super.toString().indexOf('Retries'));
     return `Coindesk API Client -
@@ -364,6 +389,22 @@ class CoindeskAPIClient extends CoindeskAPIHttpRequest {
       ${ toString }`;
   }
 
+  /**
+   * Validates class properties and constructs an instance of CoindeskAPIHttpRequest class.
+   *
+   * @access     public
+   * @constructs CoindeskAPIClient
+   * @static
+   *
+   * @function
+   * @param  {String}  dataType  Type of data to fetch from Coindesk API (currentprice or historical).
+   * @param  {Object}  params    Optional Coindesk API endpoint query parameters.
+   * @param  {Number}  retries   Maximum number of request attempts before failing.
+   * @param  {Number}  redirects Maximum number of request redirects allowed.
+   * @param  {Number}  timeout   Number of miliseconds before throw request timeout error.
+   * @param  {Boolean} backoff   Enable/disable http request retry backoff.
+   * @return {CoindeskAPIClient} Class instance.
+   */
   static start(dataType = null, params = {}, retries = 10, redirects = 5, timeout = 5000, backoff = true) {
     dataType = utils.validateDataType(dataType);
     params = utils.validateParams(dataType, params);
@@ -371,6 +412,17 @@ class CoindeskAPIClient extends CoindeskAPIHttpRequest {
     return new this(dataType, params, retries, redirects, timeout, backoff);
   }
 
+  /**
+   * Constructs Coindesk API corresponding endpoint.
+   *
+   * @access   private
+   * @memberof CoindeskAPIClient
+   *
+   * @function
+   * @param  {String} dataType Type of data to fetch from Coindesk API (currentprice or historical).
+   * @param  {Object} params   Optional Coindesk API endpoint query parameters.
+   * @return {URL}    New url instance for Coindesk API endpoint.
+   */
   _constructApiEndpoint(dataType, params) {
     let resource = dataType ? settings.API_ENDPOINTS[dataType] : '';
     if (dataType === settings.API_CURRENTPRICE_DATA_TYPE) {
@@ -383,16 +435,45 @@ class CoindeskAPIClient extends CoindeskAPIHttpRequest {
     return apiEndpoint;
   }
 
+  /**
+   * Returns Coindesk API corresponding url path.
+   *
+   * @access   private
+   * @memberof CoindeskAPIClient
+   *
+   * @function
+   * @return {String} Url path for Coindesk API endpoint.
+   */
   _getApiPath() {
     const { protocol, host, path } = settings.API_COINDESK_SETUP;
     const apiPath = `${ protocol }://${ host }${ path }`;
     return this._cleanApiPath(apiPath);
   }
 
+  /**
+   * Returns Coindesk API corresponding cleaned url path.
+   *
+   * @access   private
+   * @memberof CoindeskAPIClient
+   *
+   * @function
+   * @return {String} Url path for Coindesk API endpoint.
+   */
   _cleanApiPath(apiPath) {
     return apiPath.endsWith('/') ? apiPath.replace(/\/+$/g, '') : apiPath;
   }
 
+  /**
+   * Returns Coindesk API corresponding endpoint.
+   *
+   * @access   private
+   * @memberof CoindeskAPIClient
+   *
+   * @function
+   * @param  {String} url    Url path for Coindesk API endpoint.
+   * @param  {Object} params Optional Coindesk API endpoint query parameters.
+   * @return {URL}    New url instance for Coindesk API endpoint.
+   */
   _getParsedUrl(url, params) {
     const encodedParams = this._getEncodedParams(params);
     url = encodedParams !== '' ? `${ url }?${ encodedParams }` : url;
@@ -400,16 +481,44 @@ class CoindeskAPIClient extends CoindeskAPIHttpRequest {
     return new URL(url);
   }
 
+  /**
+   * Returns Coindesk API corresponding endpoint encoded query parameters.
+   *
+   * @access   private
+   * @memberof CoindeskAPIClient
+   *
+   * @function
+   * @param  {Object} params Optional Coindesk API endpoint query parameters.
+   * @return {String} Encoded url query parameters.
+   */
   _getEncodedParams(params) {
     return Object.keys(params).map(key => {
       return `${ encodeURIComponent(key) }=${ encodeURIComponent(params[key]) }`;
     }).join('&');
   }
 
+  /**
+   * Returns client instance data type property value.
+   *
+   * @access   public
+   * @memberof CoindeskAPIClient
+   *
+   * @property {Function}
+   * @return   {Number} Type of data to fetch (currentprice or historical).
+   */
   get dataType() {
     return _private(this).dataType;
   }
 
+  /**
+   * Sets client instance data type property value.
+   *
+   * @access   public
+   * @memberof CoindeskAPIClient
+   *
+   * @property {Function}
+   * @param    {String} dataType Type of data to fetch (currentprice or historical).
+   */
   set dataType(dataType) {
     dataType = utils.validateDataType(dataType);
     _private(this).dataType = dataType;
@@ -417,19 +526,58 @@ class CoindeskAPIClient extends CoindeskAPIHttpRequest {
     _private(this).apiEndpoint = this._constructApiEndpoint(dataType, this.params);
   }
 
+  /**
+   * Returns client endpoint to fetch data from.
+   *
+   * The Coindesk API endpoint is built internally based on
+   * the dataType and params values provided to the client.
+   *
+   * @access   public
+   * @memberof CoindeskAPIClient
+   *
+   * @property {Function}
+   * @return   {String} Coindesk API endpoint to fetch data from.
+   */
   get url() {
     return _private(this).apiEndpoint;
   }
 
+  /**
+   * Returns client endpoint path (omitting the url origin).
+   *
+   * @access   public
+   * @memberof CoindeskAPIClient
+   *
+   * @property {Function}
+   * @return   {String} Coindesk API endpoint path.
+   */
   get path() {
     return this.url.pathname;
   }
 
+  /**
+   * Sets client endpoint path.
+   *
+   * @access   public
+   * @memberof CoindeskAPIClient
+   *
+   * @property {Function}
+   * @param    {String} path Coindesk API endpoint path.
+   */
   set path(path) {
     this.url.pathname = path;
     this.deleteManyParams(Object.keys(this.params));
   }
 
+  /**
+   * Returns client endpoint query parameters.
+   *
+   * @access   public
+   * @memberof CoindeskAPIClient
+   *
+   * @property {Function}
+   * @return   {Object} Coindesk API endpoint query parameters.
+   */
   get params() {
     const params = new Object();
     for (let key of this.url.searchParams.keys()) {
@@ -438,27 +586,81 @@ class CoindeskAPIClient extends CoindeskAPIHttpRequest {
     return params;
   }
 
+  /**
+   * Returns the value for the specified key of endpoint query parameter.
+   *
+   * @access   public
+   * @memberof CoindeskAPIClient
+   *
+   * @function
+   * @param    {String} key Query parameter name.
+   * @return   {String} Coindesk API endpoint query parameter value.
+   */
   getParam(key) {
     return this.url.searchParams.get(key);
   }
 
+  /**
+   * Sets client endpoint query parameters.
+   *
+   * @access   public
+   * @memberof CoindeskAPIClient
+   *
+   * @property {Function}
+   * @param    {Object} params Coindesk API endpoint query parameters.
+   */
   set params(params) {
     params = utils.validateParams(this.dataType, params);
     Object.keys(params).forEach(key => this.url.searchParams.set(key, params[key]));
   }
 
+  /**
+   * Deletes the endpoint query parameter for the specified key.
+   *
+   * @access   public
+   * @memberof CoindeskAPIClient
+   *
+   * @function
+   * @param    {String} key Coindesk API endpoint query parameters.
+   */
   deleteParam(key) {
     this.url.searchParams.delete(key);
   }
 
+  /**
+   * Deletes the endpoint query parameter for the specified keys.
+   *
+   * @access   public
+   * @memberof CoindeskAPIClient
+   *
+   * @function
+   * @param    {Array} keys Coindesk API endpoint query parameters names.
+   */
   deleteManyParams(keys) {
     keys.forEach(key => this.deleteParam(key));
   }
 
+  /**
+   * Deletes all the endpoint query parameter.
+   *
+   * @access   public
+   * @memberof CoindeskAPIClient
+   *
+   * @function
+   */
   deleteAllParams() {
     Object.keys(this.params).forEach(key => this.deleteParam(key));
   }
 
+  /**
+   * Returns valid query parameters for the corresponding API endpoint.
+   *
+   * @access   public
+   * @memberof CoindeskAPIClient
+   *
+   * @function
+   * @return {Array} Coindesk API endpoint valid query parameters names.
+   */
   get validParams() {
     switch (this.dataType) {
       case settings.API_CURRENTPRICE_DATA_TYPE:
@@ -472,6 +674,15 @@ class CoindeskAPIClient extends CoindeskAPIHttpRequest {
     }
   }
 
+  /**
+   * Returns valid currency values for the currency query parameters.
+   *
+   * @access   public
+   * @memberof CoindeskAPIClient
+   *
+   * @function
+   * @return {Promise} Object with valid currency values for currency query parameter.
+   */
   async getSupportedCurrencies() {
     let currencies = null;
     const apiPath = this._getApiPath();
@@ -488,6 +699,22 @@ class CoindeskAPIClient extends CoindeskAPIHttpRequest {
     return currencies !== null ? currencies : settings.SUPPORTED_CURRENCIES;
   }
 
+  /**
+   * Gets Bitcoin market information from Coindesk API.
+   *
+   * Makes https request to Coindesk API for the constructed url.
+   * The response could be the raw response or just a json object
+   * with the data.
+   *
+   * @access   public
+   * @memberof CoindeskAPIHttpRequest
+   *
+   * @function
+   * @param  {Boolean} raw Enable/disable raw response.
+   * @return {Promise} Http response object with requested data.
+   *
+   * @throws {CoindeskAPIHttpRequestError}
+   */
   async get(raw = false) {
     try {
       return await super.get(this.url.href, raw);
