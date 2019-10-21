@@ -1,6 +1,7 @@
 /**
- * @file
  * Class-based Coindesk API client.
+ *
+ * @file Defines CoindeskAPIClient, CoindeskAPIHttpRequest and CoindeskAPIHttpResponse classes.
  */
 
 const axios = require('axios');
@@ -735,20 +736,68 @@ class CoindeskAPIClient extends CoindeskAPIHttpRequest {
  * @class
  */
 class CoindeskAPIHttpResponse {
+
+  /**
+   * Constructs an instance of CoindeskAPIHttpResponse class.
+   *
+   * @access     public
+   * @constructs CoindeskAPIClient
+   *
+   * @constructor
+   * @param  {Object} response Http response object with returned data.
+   * @return {CoindeskAPIHttpResponse} Class instance.
+   */
   constructor(response) {
     _private(this).response = response;
   }
 
+  /**
+   * Returns instance string representation.
+   *
+   * @access   public
+   * @memberof CoindeskAPIHttpResponse
+   *
+   * @function
+   * @return {String} CoindeskAPIHttpResponse class instance string representation.
+   */
   toString() {
     return `Coindesk API Http Response -
       Class: ${ this.constructor.name }`;
   }
 
+   /**
+   * Validates returned response data and constructs a CoindeskAPIHttpResponse class instance.
+   *
+   * @access     public
+   * @constructs CoindeskAPIHttpResponse
+   * @static
+   *
+   * @function
+   * @param  {Object} response Http response object with returned data
+   * @param  {String} dataType Type of data to fetch from Coindesk API (currentprice or historical).
+   * @param  {String} currency Code for the currency in which returned data is fetched.
+   * @return {CoindeskAPIHttpResponse} Class instance.
+   */
   static parse(response, dataType, currency = null) {
     this._validate(response, dataType, currency);
     return new this(response);
   }
 
+  /**
+   * Validates returned response data against schema.
+   *
+   * @access     private
+   * @constructs CoindeskAPIHttpResponse
+   * @static
+   *
+   * @function
+   * @param  {Object} response Http response object with returned data
+   * @param  {String} dataType Type of data to fetch from Coindesk API (currentprice or historical).
+   * @param  {String} currency Code for the currency in which returned data is fetched.
+   * @return {CoindeskAPIHttpResponse} Class instance.
+   *
+   * @throws {CoindeskAPIHttpResponseError}
+   */
   static _validate(response, dataType, currency) {
     const schema = utils.getResponseSchema(dataType, currency);
     const { errors } = schema.validate(response);
@@ -759,10 +808,30 @@ class CoindeskAPIHttpResponse {
     }
   }
 
+  /**
+   * Returns returned response.
+   *
+   * @access   public
+   * @memberof CoindeskAPIHttpResponse
+   *
+   * @property {Function}
+   * @return   {Object} Returned response.
+   */
   get response() {
     return _private(this).response;
   }
 
+  /**
+   * Returns returned response in json format.
+   *
+   * @access   public
+   * @memberof CoindeskAPIHttpResponse
+   *
+   * @property {Function}
+   * @return   {JSON} Returned response in json format.
+   *
+   * @throws {CoindeskAPIHttpResponseError}
+   */
   get JSONresponse() {
     try {
       return JSON.stringify(this.response);
@@ -773,10 +842,29 @@ class CoindeskAPIHttpResponse {
     }
   }
 
+  /**
+   * Returns returned response properties.
+   *
+   * @access   public
+   * @memberof CoindeskAPIHttpResponse
+   *
+   * @property {Function}
+   * @return   {Array} Returned response properties.
+   */
   get responseItems() {
     return Object.keys(this.response);
   }
 
+  /**
+   * Returns returned response in json format.
+   *
+   * @access   public
+   * @memberof CoindeskAPIHttpResponse
+   *
+   * @property {Function}
+   * @param  {String} item Response property name.
+   * @return {String} Response item value.
+   */
   getResponseItem(item) {
     if (!this.response.hasOwnProperty(item)) {
       const message = `Unvalid provided response item ${ item }`;
