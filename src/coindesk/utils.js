@@ -1,5 +1,7 @@
-/*
+/**
  * Coindesk API client utilities.
+ *
+ * @file Defines Coindesk API client classes utilities.
  */
 
 const fs = require('fs');
@@ -7,12 +9,24 @@ const { getLogger } = require('../logger/service');
 const { CoindeskAPIClientError } = require('../errors');
 const { CoindeskAPIHttpRequestError } = require('../errors');
 const { CoindeskAPIHttpResponseError } = require('../errors');
-const schema = require('./schemas');
+const schemas = require('./schemas');
 const settings = require('../settings');
 const supportedCurrencies = require('../currencies.json').SUPPORTED_CURRENCIES;
 
 const logger = getLogger(__filename);
 
+/**
+ * Validates data type argument to constructor Coindesk API endpoint.
+ *
+ * @access private
+ * @member {Function} CoindeskAPIClient
+ *
+ * @function
+ * @param  {String} dataType Type of data to fetch from Coindesk API (currentprice or historical).
+ * @return {String} Validated dataType parameters.
+ *
+ * @throws {CoindeskAPIClientError}
+ */
 let validateDataType = (dataType) => {
   if (!settings.VALID_DATA_TYPES.includes(dataType)) {
     const message = `Data type must be ${ settings.VALID_DATA_TYPES.join(', ') }.`;
@@ -22,6 +36,19 @@ let validateDataType = (dataType) => {
   return dataType;
 };
 
+/**
+ * Validates Coindesk API endpoint optional query parameters.
+ *
+ * @access private
+ * @member {Function} CoindeskAPIClient
+ *
+ * @function
+ * @param  {String} dataType Type of data to fetch from Coindesk API (currentprice or historical).
+ * @param  {Object} params   Optional query parameters for corresponding endpoint.
+ * @return {Object} Validated query parameters.
+ *
+ * @throws {CoindeskAPIClientError}
+ */
 let validateParams = (dataType, params) => {
   if (dataType === settings.API_CURRENTPRICE_DATA_TYPE) {
     for (let param in params) {
@@ -65,6 +92,17 @@ let validateParams = (dataType, params) => {
   return params;
 };
 
+/**
+ * Validates index optional query parameter.
+ *
+ * @access private
+ * @member {Function} CoindeskAPIClient
+ *
+ * @function
+ * @param {String} index Query parameter whose values can be either 'USD' or 'CNY'.
+ *
+ * @throws {CoindeskAPIClientError}
+ */
 let validateIndex = (index) => {
   if (!settings.VALID_INDEX.includes(index)) {
     const message = `'Index' must be ${ settings.VALID_INDEX.join(', ') }.`;
@@ -73,6 +111,17 @@ let validateIndex = (index) => {
   }
 };
 
+/**
+ * Validates currency optional query parameter.
+ *
+ * @access private
+ * @member {Function} CoindeskAPIClient
+ *
+ * @function
+ * @param {String} currency Determine which currency data must be returned in.
+ *
+ * @throws {CoindeskAPIClientError}
+ */
 let validateCurrency = (currency) => {
   const currencies = supportedCurrencies.map(currency => currency.currency);
   if (currency !== null && !currencies.includes(currency)) {
@@ -82,6 +131,18 @@ let validateCurrency = (currency) => {
   }
 };
 
+/**
+ * Validates dates interval (start and end) optional query parameters.
+ *
+ * @access private
+ * @member {Function} CoindeskAPIClient
+ *
+ * @function
+ * @param {Object} params Optional query paremters object.
+ * @param {String} flag   Determines which date to validate ('start' or 'end').
+ *
+ * @throws {CoindeskAPIClientError}
+ */
 let validateDate = (params, flag) => {
   const date = params[flag];
   const match = date.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
@@ -101,6 +162,17 @@ let validateDate = (params, flag) => {
   }
 };
 
+/**
+ * Validates for optional query parameter.
+ *
+ * @access private
+ * @member {Function} CoindeskAPIClient
+ *
+ * @function
+ * @param {String} forParam Takes the value 'yesterday'. Overwrites 'start' and 'end' params.
+ *
+ * @throws {CoindeskAPIClientError}
+ */
 let validateFor = (forParam) => {
   if (!settings.VALID_FOR.includes(forParam)) {
     const message = `For must be ${ settings.VALID_FOR.join(', ') }.`;
@@ -109,9 +181,21 @@ let validateFor = (forParam) => {
   }
 };
 
+/**
+ * Validates retries Coindesk API request property value.
+ *
+ * @access private
+ * @member {Function} CoindeskAPIHttpRequest
+ *
+ * @function
+ * @param  {Number} retries Maximum number of request attempts before failing.
+ * @return {Number} Validated retries value.
+ *
+ * @throws {CoindeskAPIHttpRequestError}
+ */
 let validateRetries = (retries) => {
-  if (typeof retries !== 'number' || !Number.isInteger(retries)) {
-    const message = `Retries type ${ typeof retries } must be integer number.`;
+  if (typeof retries !== 'number' || !Number.isInteger(retries) || retries < 0) {
+    const message = `Retries type ${ typeof retries } must be positive integer number.`;
     logger.error(`[CoindeskAPIHttpRequest] Retries error: ${ message }`);
     throw new CoindeskAPIHttpRequestError(message);
   }
@@ -122,9 +206,21 @@ let validateRetries = (retries) => {
   return maxRetries;
 };
 
+/**
+ * Validates redirects Coindesk API request property value.
+ *
+ * @access private
+ * @member {Function} CoindeskAPIHttpRequest
+ *
+ * @function
+ * @param  {Number} redirects Maximum number of request redirects allowed.
+ * @return {Number} Validated redirects value.
+ *
+ * @throws {CoindeskAPIHttpRequestError}
+ */
 let validateRedirects = (redirects) => {
-  if (typeof redirects !== 'number' || !Number.isInteger(redirects)) {
-    const message = `Redirects type ${ typeof redirects } must be integer number.`;
+  if (typeof redirects !== 'number' || !Number.isInteger(redirects) || redirects < 0) {
+    const message = `Redirects type ${ typeof redirects } must be positive integer number.`;
     logger.error(`[CoindeskAPIHttpRequest] Redirects error: ${ message }`);
     throw new CoindeskAPIHttpRequestError(message);
   }
@@ -135,9 +231,21 @@ let validateRedirects = (redirects) => {
   return maxRedirects;
 };
 
+/**
+ * Validates timeout Coindesk API request property value.
+ *
+ * @access private
+ * @member {Function} CoindeskAPIHttpRequest
+ *
+ * @function
+ * @param  {Number} timeout Number of miliseconds before throw request timeout error.
+ * @return {Number} Validated timeout value.
+ *
+ * @throws {CoindeskAPIHttpRequestError}
+ */
 let validateTimeout = (timeout) => {
-  if (typeof timeout !== 'number' || !Number.isInteger(timeout)) {
-    const message = `Timeout type ${ typeof timeout } must be integer number.`;
+  if (typeof timeout !== 'number' || !Number.isInteger(timeout) || timeout < 0) {
+    const message = `Timeout type ${ typeof timeout } must be positive integer number.`;
     logger.error(`[CoindeskAPIHttpRequest] Timeout error: ${ message }`);
     throw new CoindeskAPIHttpRequestError(message);
   }
@@ -148,14 +256,38 @@ let validateTimeout = (timeout) => {
   return maxTimeout;
 };
 
+/**
+ * Validates backoff Coindesk API request property value.
+ *
+ * @access private
+ * @member {Function} CoindeskAPIHttpRequest
+ *
+ * @function
+ * @param  {Boolean} backoff Enable/disable http request retry backoff.
+ * @return {Boolean} Validated backoff value.
+ *
+ * @throws {CoindeskAPIHttpRequestError}
+ */
 let validateBackoff = (backoff) => {
   if (typeof backoff !== 'boolean') {
     const message = `Backoff type ${ typeof backoff } must be 'boolean'.`;
     logger.error(`[CoindeskAPIHttpRequest] Backoff error: ${ message }`);
     throw new CoindeskAPIHttpRequestError(message);
   }
+  return backoff;
 };
 
+/**
+ * Validates Coindesk API endpoint.
+ *
+ * @access private
+ * @member {Function} CoindeskAPIClient
+ *
+ * @function
+ * @param {String} url Coindesk API endpoint.
+ *
+ * @throws {CoindeskAPIClientError}
+ */
 let validateUrl = (url) => {
   const match = url.match(/(?:([^:\/?#]+):)?(?:\/\/([^\/?#]*))?([^?#]*)(?:\?([^#]*))?(?:#(.*))?/);
   if (!match) {
@@ -165,6 +297,16 @@ let validateUrl = (url) => {
   }
 };
 
+/**
+ * Validates supported currencies list fetched from Coindesk API.
+ *
+ * @access private
+ * @member {Function} CoindeskAPIClient
+ *
+ * @function
+ * @param  {String} currencies Supported currencies fetched from Coindesk API.
+ * @return {String} Stringified supported currencies updated data.
+ */
 let validateSupportedCurrencies = async (currencies) => {
   const validCurrencies = new Set(currencies.map(currency => currency.currency));
   const allowedCurrencies = new Set(supportedCurrencies.map(currency => currency.currency));
@@ -177,6 +319,16 @@ let validateSupportedCurrencies = async (currencies) => {
   }
 };
 
+/**
+ * Returns supported currencies file.
+ *
+ * @access private
+ * @member {Function} CoindeskAPIClient
+ *
+ * @function
+ * @param  {String} path Path to supported currencies file ('currencies.json').
+ * @return {String} Stringified supported currencies file.
+ */
 let readFile = (path) => {
   return new Promise((resolve, reject) => {
     fs.readFile(path, (err, data) => {
@@ -186,6 +338,17 @@ let readFile = (path) => {
   });
 };
 
+/**
+ * Updates supported currencies file.
+ *
+ * @access private
+ * @member {Function} CoindeskAPIClient
+ *
+ * @function
+ * @param  {String} path Path to supported currencies file ('currencies.json').
+ * @param  {String} data Stringified supported currencies updated data.
+ * @return {String} Stringified supported currencies updated data.
+ */
 let writeFile = (path, data) => {
   return new Promise((resolve, reject) => {
     fs.writeFile(path, data, (err) => {
@@ -195,6 +358,17 @@ let writeFile = (path, data) => {
   });
 };
 
+/**
+ * Updates supported currencies with the fetched list from Coindesk API.
+ *
+ * @access private
+ * @member {Function} CoindeskAPIClient
+ *
+ * @function
+ * @param {String} currencies Supported currencies fetched from Coindesk API.
+ *
+ * @throws {CoindeskAPIClientError}
+ */
 let updateCurrenciesSettings = async (currencies) => {
   let file;
   try {
@@ -216,13 +390,26 @@ let updateCurrenciesSettings = async (currencies) => {
   }
 };
 
-let getResponseSchema = (dataType, currency) => {
+/**
+ * Returns corresponding schema to validate Coindesk API response data.
+ *
+ * @access private
+ * @member {Function} CoindeskAPIHttpResponse
+ *
+ * @function
+ * @param  {String} dataType Type of data to fetch from Coindesk API (currentprice or historical).
+ * @param  {String} currency Currency in which data has been returned.
+ * @return {Object} Response schema to validate returned data.
+ *
+ * @throws {CoindeskAPIHttpResponse}
+ */
+let getResponseSchema = (dataType, currency = null) => {
   switch (dataType) {
     case settings.API_CURRENTPRICE_DATA_TYPE:
-      if (currency === null) return schema.currentpriceSchema;
-      return schema.currentpriceCurrencySchema;
+      if (currency === null) return schemas.currentpriceSchema;
+      return schemas.currentpriceCurrencySchema;
     case settings.API_HISTORICAL_DATA_TYPE:
-      return schema.historicalSchema;
+      return schemas.historicalSchema;
     default:
       message = `Schema not found for data type ${ dataType } and currency ${ currency }.`;
       logger.error(`[CoindeskAPIHttpResponse] Schema error: ${ message }`);
