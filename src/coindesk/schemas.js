@@ -1,5 +1,7 @@
-/*
+/**
  * Coindesk API response schemas.
+ *
+ * @file This file defines Coindesk API response schemas.
  */
 
 const Joi = require('@hapi/joi');
