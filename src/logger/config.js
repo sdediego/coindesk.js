@@ -1,5 +1,7 @@
-/*
+/**
  * Coindesk API client logger configuration.
+ *
+ * @file Defines logger configuration for application.
  */
 
 const Joi = require('@hapi/joi');
