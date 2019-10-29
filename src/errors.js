@@ -1,8 +1,31 @@
-/*
+/**
  * Class-based errors for Coindesk API client.
+ *
+ * @file Defines custom errors for application classes.
  */
 
+/**
+ * Constructs an instance of BaseError class.
+ *
+ * Provides the ability to create a new BaseError instance
+ * with custom message and code.
+ *
+ * @access public
+ * @class
+ */
 class BaseError extends Error {
+
+  /**
+   * Constructs an instance of BaseError class.
+   *
+   * @access     public
+   * @constructs BaseError
+   *
+   * @constructor
+   * @param  {Number}    message Custom error message to provide information.
+   * @param  {String}    code    Custom error number code.
+   * @return {BaseError} Class instance.
+   */
   constructor(message, code) {
     if (code !== null) {
       message = `${ message } - Error code ${ code }`;
